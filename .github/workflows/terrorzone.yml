@@ -2,7 +2,7 @@ name: Diablo 2 Terror Zone Alert
 
 on:
   schedule:
-    - cron: "15,45 * * * *"
+    - cron: "10,15,20,40,45,50 * * * *"
   workflow_dispatch:
 
 jobs:
