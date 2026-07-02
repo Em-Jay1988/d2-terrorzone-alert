@@ -1,21 +1,46 @@
 import os
 import re
 import requests
-from bs4 import BeautifulSoup
 
 TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
 TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 
-SOURCE_URL = "https://diablo2.io/tzonetracker.php"
+D2EMU_API_URL = "https://d2emu.com/api/v1/tz"
+
+ZONE_MAPPING = {
+    33: "Cathedral",
+    34: "Catacombs Level 1",
+    35: "Catacombs Level 2",
+    36: "Catacombs Level 3",
+    37: "Catacombs Level 4",
+    66: "Tal Rasha's Tomb #1",
+    67: "Tal Rasha's Tomb #2",
+    68: "Tal Rasha's Tomb #3",
+    69: "Tal Rasha's Tomb #4",
+    70: "Tal Rasha's Tomb #5",
+    71: "Tal Rasha's Tomb #6",
+    72: "Tal Rasha's Tomb #7",
+    73: "Duriel's Lair",
+    100: "Durance Of Hate Level 1",
+    101: "Durance Of Hate Level 2",
+    102: "Durance Of Hate Level 3",
+    108: "Chaos Sanctuary",
+    128: "The Worldstone Keep Level 1",
+    129: "The Worldstone Keep Level 2",
+    130: "The Worldstone Keep Level 3",
+    131: "Throne Of Destruction",
+    132: "The Worldstone Chamber",
+}
 
 WATCH_KEYWORDS = [
+    "cathedral",
     "catacombs",
     "tal rasha",
+    "duriel",
     "durance of hate",
     "chaos sanctuary",
-    "worldstone keep",
+    "worldstone",
     "throne of destruction",
-    "worldstone chamber",
 ]
 
 
@@ -37,96 +62,51 @@ def send_telegram(message):
     r.raise_for_status()
 
 
-def get_tracker_text():
-    headers = {
-        "User-Agent": "Mozilla/5.0 D2-TerrorZone-Telegram-Bot"
-    }
-    r = requests.get(SOURCE_URL, headers=headers, timeout=20)
+def fetch_tz():
+    r = requests.get(D2EMU_API_URL, timeout=20)
     r.raise_for_status()
-    soup = BeautifulSoup(r.text, "html.parser")
-    return soup.get_text("\n", strip=True)
+    data = r.json()
+
+    current_ids = data.get("current", [])
+    next_ids = data.get("next", [])
+
+    current_zones = [ZONE_MAPPING.get(int(i), f"Zone ID {i}") for i in current_ids]
+    next_zones = [ZONE_MAPPING.get(int(i), f"Zone ID {i}") for i in next_ids]
+
+    return current_zones, next_zones
 
 
-def extract_next_zone(text):
-    # Bereich nach "Next" nehmen
-    parts = re.split(r"\bNext\b", text, flags=re.IGNORECASE)
-    if len(parts) < 2:
-        return ""
-
-    next_part = parts[1]
-
-    # Vor History abschneiden
-    next_part = re.split(
-        r"Online terror zones over the last|History|Current",
-        next_part,
-        flags=re.IGNORECASE,
-    )[0]
-
-    lines = [line.strip() for line in next_part.splitlines() if line.strip()]
-
-    junk = [
-        "timestamp",
-        "automatically converted",
-        "format is",
-        "browser time",
-        "immunities",
-        "current",
-        "next",
-        "upcoming",
-        "terror zones",
-        "time zones",
-    ]
-
-    zone_lines = []
-    for line in lines:
-        low = line.lower()
-        if any(j in low for j in junk):
-            continue
-        if re.match(r"^\d{4}-\d{2}-\d{2}", line):
-            continue
-        if len(line) < 3:
-            continue
-        zone_lines.append(line)
-
-    return " / ".join(zone_lines[:5]).strip()
-
-
-def is_watched(zone):
-    z = normalize(zone)
-    return any(keyword in z for keyword in WATCH_KEYWORDS)
+def is_watched(zones):
+    text = normalize(" ".join(zones))
+    return any(keyword in text for keyword in WATCH_KEYWORDS)
 
 
 def main():
-    text = get_tracker_text()
-    next_zone = extract_next_zone(text)
-
+    current_zones, next_zones = fetch_tz()
     manual_test = os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch"
 
-    if not next_zone:
-        msg = (
-            "⚠️ <b>Bot läuft, aber konnte die nächste TZ nicht lesen.</b>\n\n"
-            "Datenquelle hat vermutlich gerade keine Next-Zone veröffentlicht "
-            "oder das Seitenformat hat sich geändert."
-        )
-        if manual_test:
-            send_telegram(msg)
-        raise RuntimeError("Next Terror Zone konnte nicht gelesen werden.")
+    current_text = ", ".join(current_zones) if current_zones else "Unbekannt"
+    next_text = ", ".join(next_zones) if next_zones else "Unbekannt"
 
-    if is_watched(next_zone):
+    if is_watched(next_zones):
         send_telegram(
             f"🔥 <b>Terror Zone Alert</b>\n\n"
             f"In ca. 15 Minuten startet:\n"
-            f"<b>{next_zone}</b>"
+            f"<b>{next_text}</b>\n\n"
+            f"Aktuell:\n{current_text}"
         )
     elif manual_test:
         send_telegram(
             f"✅ <b>Bot-Test erfolgreich</b>\n\n"
+            f"Aktuelle Terror Zone:\n"
+            f"<b>{current_text}</b>\n\n"
             f"Nächste Terror Zone:\n"
-            f"<b>{next_zone}</b>\n\n"
+            f"<b>{next_text}</b>\n\n"
             f"Diese Zone ist aktuell nicht auf deiner Boss-Liste."
         )
     else:
-        print(f"Keine Wunschzone. Nächste TZ: {next_zone}")
+        print(f"Aktuell: {current_text}")
+        print(f"Nächste: {next_text}")
 
 
 if __name__ == "__main__":
