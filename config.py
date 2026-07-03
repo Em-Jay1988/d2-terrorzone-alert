@@ -8,3 +8,4 @@ LOCAL_TIMEZONE = "Europe/Berlin"
 
 APP_NAME = "D2 Companion"
 VERSION = "1.1"
+ADMIN_CHAT_ID = "279075849"
