@@ -1,77 +1,81 @@
 ZONES = {
-    # Boss-TZ
+    # Akt I
     "kata": {
+        "act": "⚔️ Akt I",
         "name": "🕸️ Katakomben",
-        "keywords": ["cathedral", "catacombs"]
-    },
-    "tal": {
-        "name": "🏜️ Tal Rashas Gräber",
-        "keywords": ["tal rasha"]
-    },
-    "meph": {
-        "name": "💀 Kerker des Hasses",
-        "keywords": ["durance of hate"]
-    },
-    "chaos": {
-        "name": "🔥 Chaos Sanktuarium",
-        "keywords": ["chaos sanctuary"]
-    },
-    "wsk": {
-        "name": "👑 Weltsteinturm",
-        "keywords": [
-            "worldstone keep",
-            "throne of destruction",
-            "worldstone chamber"
-        ]
-    },
-
-    # Weitere beliebte Terrorzonen
-    "at": {
-        "name": "🧊 Alte Tunnel",
-        "keywords": ["ancient tunnels"]
+        "keywords": ["cathedral", "catacombs"],
     },
     "pit": {
+        "act": "⚔️ Akt I",
         "name": "🕳️ Die Grube",
-        "keywords": ["pit"]
+        "keywords": ["pit"],
     },
-    "cows": {
-        "name": "🐄 Kuhlevel",
-        "keywords": ["moo moo farm"]
+
+    # Akt II
+    "tal": {
+        "act": "🐪 Akt II",
+        "name": "🏜️ Tal Rashas Gräber",
+        "keywords": ["tal rasha"],
+    },
+    "at": {
+        "act": "🐪 Akt II",
+        "name": "🧊 Alte Tunnel",
+        "keywords": ["ancient tunnels"],
     },
     "arc": {
+        "act": "🐪 Akt II",
         "name": "🌌 Arkane Zuflucht",
-        "keywords": ["arcane sanctuary"]
-    },
-    "trav": {
-        "name": "🏛️ Travincal",
-        "keywords": ["travincal"]
-    },
-    "nilly": {
-        "name": "☠️ Nihlathaks Tempel",
-        "keywords": [
-            "nihlathak",
-            "halls of anguish",
-            "halls of pain",
-            "halls of vaught"
-        ]
-    },
-    "flayer": {
-        "name": "🌿 Schinderdschungel",
-        "keywords": [
-            "flayer jungle",
-            "flayer dungeon"
-        ]
+        "keywords": ["arcane sanctuary"],
     },
     "maggot": {
+        "act": "🐪 Akt II",
         "name": "🐛 Wurmgruft",
-        "keywords": ["maggot lair"]
+        "keywords": ["maggot lair"],
+    },
+
+    # Akt III
+    "meph": {
+        "act": "🗿 Akt III",
+        "name": "💀 Kerker des Hasses",
+        "keywords": ["durance of hate"],
+    },
+    "trav": {
+        "act": "🗿 Akt III",
+        "name": "🏛️ Travincal",
+        "keywords": ["travincal"],
+    },
+    "flayer": {
+        "act": "🗿 Akt III",
+        "name": "🌿 Schinderdschungel",
+        "keywords": ["flayer jungle", "flayer dungeon"],
     },
     "kurast": {
+        "act": "🗿 Akt III",
         "name": "🏯 Ober-Kurast",
-        "keywords": [
-            "upper kurast",
-            "kurast bazaar",
-            "kurast causeway"
-        ]
+        "keywords": ["upper kurast", "kurast bazaar", "kurast causeway"],
+    },
+
+    # Akt IV
+    "chaos": {
+        "act": "🔥 Akt IV",
+        "name": "🔥 Chaos Sanktuarium",
+        "keywords": ["chaos sanctuary"],
+    },
+
+    # Akt V
+    "wsk": {
+        "act": "👑 Akt V",
+        "name": "👑 Weltsteinturm",
+        "keywords": ["worldstone keep", "throne of destruction", "worldstone chamber"],
+    },
+    "nilly": {
+        "act": "👑 Akt V",
+        "name": "☠️ Nihlathaks Tempel",
+        "keywords": ["nihlathak", "halls of anguish", "halls of pain", "halls of vaught"],
+    },
+    "cows": {
+        "act": "👑 Akt V",
+        "name": "🐄 Kuhlevel",
+        "keywords": ["moo moo farm"],
     },
 }
