@@ -188,7 +188,6 @@ def handle_callbacks(data):
 
     return changed or bool(updates)
 
-
 if __name__ == "__main__":
     data = load_users()
 
@@ -196,3 +195,8 @@ if __name__ == "__main__":
 
     if changed:
         save_users(data)
+
+    # Menü nur senden, wenn keine neuen Button-Klicks verarbeitet wurden
+    if not changed:
+        show_main_menu(data)
+
