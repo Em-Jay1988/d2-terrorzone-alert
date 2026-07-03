@@ -32,12 +32,22 @@ def build_list_message(user):
 
     lines = [f"📋 <b>{APP_NAME}</b>", ""]
 
+    current_act = None
+
     for code, zone in ZONES.items():
+        act = zone.get("act", "Sonstige")
+
+        if act != current_act:
+            if current_act is not None:
+                lines.append("")
+            lines.append(f"<b>{act}</b>")
+            current_act = act
+
         marker = "✅" if code in favorites else "❌"
         lines.append(f"{marker} <code>{code}</code>  {zone['name']}")
 
     lines.append("")
-    lines.append("Später kannst du hier per Buttons auswählen.")
+    lines.append("Tippe später auf Buttons, um Favoriten zu ändern.")
 
     return "\n".join(lines)
 
