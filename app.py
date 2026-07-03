@@ -88,6 +88,8 @@ def main():
         return
 
     for chat_id, user in users.items():
+                if chat_id.startswith("_"):
+            continue
         favorites = user.get("favorites", [])
         matched_zone = match_favorite_zone(next_zone, favorites)
 
