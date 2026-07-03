@@ -46,10 +46,13 @@ def get_updates(offset):
 
 
 def answer_callback(callback_id, text=""):
-    telegram("answerCallbackQuery", {
-        "callback_query_id": callback_id,
-        "text": text,
-    })
+    try:
+        telegram("answerCallbackQuery", {
+            "callback_query_id": callback_id,
+            "text": text,
+        })
+    except requests.exceptions.HTTPError as e:
+        print(f"Could not answer callback query: {e}")
 
 
 def send_message(chat_id, text, reply_markup):
