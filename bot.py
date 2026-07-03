@@ -28,32 +28,41 @@ def send_message(chat_id, text, reply_markup=None):
     r.raise_for_status()
 
 
-def build_list_message(user):
+def build_message():
     return (
         f"📋 <b>{APP_NAME}</b>\n\n"
-        f"Wähle später per Button deine Favoriten aus."
+        f"Wähle deine Terrorzonen aus:"
     )
 
 
 def build_zone_buttons(user):
     favorites = set(user.get("favorites", []))
-
     keyboard = []
 
+    current_act = None
+
     for code, zone in ZONES.items():
+        act = zone["act"]
+
+        if act != current_act:
+            keyboard.append([
+                {
+                    "text": act,
+                    "callback_data": "noop"
+                }
+            ])
+            current_act = act
+
         marker = "✅" if code in favorites else "❌"
-        button_text = f"{marker} {zone['name']}"
 
         keyboard.append([
             {
-                "text": button_text,
+                "text": f"{marker} {zone['name']}",
                 "callback_data": f"toggle:{code}",
             }
         ])
 
-    return {
-        "inline_keyboard": keyboard
-    }
+    return {"inline_keyboard": keyboard}
 
 
 def handle_list():
@@ -62,7 +71,7 @@ def handle_list():
     for chat_id, user in users.items():
         send_message(
             chat_id,
-            build_list_message(user),
+            build_message(),
             reply_markup=build_zone_buttons(user),
         )
 
