@@ -5,12 +5,15 @@ import requests
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
+from zones import ZONES
+
+
 TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
 
 API_URL = "https://d2runewizard.com/api/terror-zone"
 LOCAL_TZ = ZoneInfo("Europe/Berlin")
 
-ZONES from zones import ZONES
+
 
 
 def normalize(text):
