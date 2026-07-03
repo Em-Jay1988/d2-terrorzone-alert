@@ -1,61 +1,24 @@
 import os
 import re
+import json
 import requests
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
-TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 
 API_URL = "https://d2runewizard.com/api/terror-zone"
 LOCAL_TZ = ZoneInfo("Europe/Berlin")
 
-# HIER steuerst du deine aktiven Favoriten:
-ACTIVE_FAVORITES = [
-    "kata",
-    "tal",
-    "meph",
-    "chaos",
-    "wsk",
-]
-
 ZONES = {
-    "kata": {
-        "name": "🕸️ Katakomben",
-        "keywords": ["cathedral", "catacombs"],
-    },
-    "tal": {
-        "name": "🏜️ Tal Rashas Gräber",
-        "keywords": ["tal rasha"],
-    },
-    "meph": {
-        "name": "💀 Kerker des Hasses",
-        "keywords": ["durance of hate"],
-    },
-    "chaos": {
-        "name": "🔥 Chaos Sanktuarium",
-        "keywords": ["chaos sanctuary"],
-    },
-    "wsk": {
-        "name": "👑 Weltsteinturm",
-        "keywords": ["worldstone", "throne of destruction", "worldstone chamber"],
-    },
-    "at": {
-        "name": "🧊 Alte Tunnel",
-        "keywords": ["ancient tunnels"],
-    },
-    "cows": {
-        "name": "🐄 Kuhlevel",
-        "keywords": ["moo moo farm"],
-    },
-    "pit": {
-        "name": "🕳️ Grube",
-        "keywords": ["pit"],
-    },
-    "andy": {
-        "name": "🕷️ Andariel-Zone",
-        "keywords": ["cathedral", "catacombs"],
-    },
+    "kata": {"name": "🕸️ Katakomben", "keywords": ["cathedral", "catacombs"]},
+    "tal": {"name": "🏜️ Tal Rashas Gräber", "keywords": ["tal rasha"]},
+    "meph": {"name": "💀 Kerker des Hasses", "keywords": ["durance of hate"]},
+    "chaos": {"name": "🔥 Chaos Sanktuarium", "keywords": ["chaos sanctuary"]},
+    "wsk": {"name": "👑 Weltsteinturm", "keywords": ["worldstone", "throne of destruction", "worldstone chamber"]},
+    "at": {"name": "🧊 Alte Tunnel", "keywords": ["ancient tunnels"]},
+    "cows": {"name": "🐄 Kuhlevel", "keywords": ["moo moo farm"]},
+    "pit": {"name": "🕳️ Grube", "keywords": ["pit"]},
 }
 
 
@@ -63,15 +26,16 @@ def normalize(text):
     return re.sub(r"[^a-z0-9]+", " ", text.lower()).strip()
 
 
-def send_telegram(message):
+def load_users():
+    with open("users.json", "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def send_telegram(chat_id, message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     r = requests.post(
         url,
-        json={
-            "chat_id": TELEGRAM_CHAT_ID,
-            "text": message,
-            "parse_mode": "HTML",
-        },
+        json={"chat_id": chat_id, "text": message, "parse_mode": "HTML"},
         timeout=20,
     )
     r.raise_for_status()
@@ -80,7 +44,7 @@ def send_telegram(message):
 def fetch_next_zone():
     r = requests.get(
         API_URL,
-        headers={"User-Agent": "D2-Terrorzone-Telegram-Bot/1.0"},
+        headers={"User-Agent": "D2-Companion/1.0"},
         timeout=20,
     )
     r.raise_for_status()
@@ -95,10 +59,10 @@ def fetch_next_zone():
     return data.get("next")
 
 
-def get_active_zone_name(next_zone):
+def match_favorite_zone(next_zone, favorites):
     zone_norm = normalize(next_zone)
 
-    for code in ACTIVE_FAVORITES:
+    for code in favorites:
         zone = ZONES.get(code)
         if not zone:
             continue
@@ -122,23 +86,27 @@ def next_start_time():
 
 
 def main():
+    users = load_users()
     next_zone = fetch_next_zone()
 
     if not next_zone:
         print("No valid next zone received. Skipping.")
         return
 
-    active_zone_name = get_active_zone_name(next_zone)
+    for chat_id, user in users.items():
+        favorites = user.get("favorites", [])
+        matched_zone = match_favorite_zone(next_zone, favorites)
 
-    if not active_zone_name:
-        print(f"No active favorite. Next TZ: {next_zone}")
-        return
+        if not matched_zone:
+            print(f"No match for {user.get('name', chat_id)}. Next TZ: {next_zone}")
+            continue
 
-    send_telegram(
-        f"🔥 <b>Terror Zone Alarm</b>\n\n"
-        f"⏰ Start: {next_start_time()}\n\n"
-        f"📍 {active_zone_name}"
-    )
+        send_telegram(
+            chat_id,
+            f"🔥 <b>Terror Zone Alarm</b>\n\n"
+            f"⏰ Start: {next_start_time()}\n\n"
+            f"📍 {matched_zone}"
+        )
 
 
 if __name__ == "__main__":
