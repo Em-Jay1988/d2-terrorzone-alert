@@ -10,15 +10,52 @@ TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 API_URL = "https://d2runewizard.com/api/terror-zone"
 LOCAL_TZ = ZoneInfo("Europe/Berlin")
 
-BOSS_ZONES = {
-    "cathedral": "🕸️ Katakomben",
-    "catacombs": "🕸️ Katakomben",
-    "tal rasha": "🏜️ Tal Rashas Gräber",
-    "durance of hate": "💀 Kerker des Hasses",
-    "chaos sanctuary": "🔥 Chaos Sanktuarium",
-    "worldstone": "👑 Weltsteinturm",
-    "throne of destruction": "👑 Weltsteinturm",
-    "worldstone chamber": "👑 Weltsteinturm",
+# HIER steuerst du deine aktiven Favoriten:
+ACTIVE_FAVORITES = [
+    "kata",
+    "tal",
+    "meph",
+    "chaos",
+    "wsk",
+]
+
+ZONES = {
+    "kata": {
+        "name": "🕸️ Katakomben",
+        "keywords": ["cathedral", "catacombs"],
+    },
+    "tal": {
+        "name": "🏜️ Tal Rashas Gräber",
+        "keywords": ["tal rasha"],
+    },
+    "meph": {
+        "name": "💀 Kerker des Hasses",
+        "keywords": ["durance of hate"],
+    },
+    "chaos": {
+        "name": "🔥 Chaos Sanktuarium",
+        "keywords": ["chaos sanctuary"],
+    },
+    "wsk": {
+        "name": "👑 Weltsteinturm",
+        "keywords": ["worldstone", "throne of destruction", "worldstone chamber"],
+    },
+    "at": {
+        "name": "🧊 Alte Tunnel",
+        "keywords": ["ancient tunnels"],
+    },
+    "cows": {
+        "name": "🐄 Kuhlevel",
+        "keywords": ["moo moo farm"],
+    },
+    "pit": {
+        "name": "🕳️ Grube",
+        "keywords": ["pit"],
+    },
+    "andy": {
+        "name": "🕷️ Andariel-Zone",
+        "keywords": ["cathedral", "catacombs"],
+    },
 }
 
 
@@ -58,12 +95,17 @@ def fetch_next_zone():
     return data.get("next")
 
 
-def get_boss_zone_name(zone):
-    zone_norm = normalize(zone)
+def get_active_zone_name(next_zone):
+    zone_norm = normalize(next_zone)
 
-    for keyword, display_name in BOSS_ZONES.items():
-        if keyword in zone_norm:
-            return display_name
+    for code in ACTIVE_FAVORITES:
+        zone = ZONES.get(code)
+        if not zone:
+            continue
+
+        for keyword in zone["keywords"]:
+            if keyword in zone_norm:
+                return zone["name"]
 
     return None
 
@@ -86,16 +128,16 @@ def main():
         print("No valid next zone received. Skipping.")
         return
 
-    boss_zone = get_boss_zone_name(next_zone)
+    active_zone_name = get_active_zone_name(next_zone)
 
-    if not boss_zone:
-        print(f"No boss zone. Next TZ: {next_zone}")
+    if not active_zone_name:
+        print(f"No active favorite. Next TZ: {next_zone}")
         return
 
     send_telegram(
         f"🔥 <b>Terror Zone Alarm</b>\n\n"
         f"⏰ Start: {next_start_time()}\n\n"
-        f"📍 {boss_zone}"
+        f"📍 {active_zone_name}"
     )
 
 
