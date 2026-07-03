@@ -1,6 +1,15 @@
 {
   "279075849": {
     "name": "Michi",
-    "favorites": ["kata", "tal", "meph", "chaos", "wsk"]
+    "favorites": [
+      "kata",
+      "tal",
+      "meph",
+      "chaos",
+      "wsk"
+    ]
+  },
+  "_meta": {
+    "last_update_id": 378108613
   }
 }
