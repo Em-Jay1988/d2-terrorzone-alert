@@ -28,53 +28,34 @@ def send_message(chat_id, text, reply_markup=None):
     r.raise_for_status()
 
 
-def build_message():
-    return (
-        f"📋 <b>{APP_NAME}</b>\n\n"
-        f"Wähle deine Terrorzonen aus:"
-    )
+def build_main_menu():
+    return {
+        "inline_keyboard": [
+            [{"text": "⚔️ Akt I", "callback_data": "act:Akt I"}],
+            [{"text": "🏜️ Akt II", "callback_data": "act:Akt II"}],
+            [{"text": "🌴 Akt III", "callback_data": "act:Akt III"}],
+            [{"text": "🔥 Akt IV", "callback_data": "act:Akt IV"}],
+            [{"text": "👑 Akt V", "callback_data": "act:Akt V"}],
+            [
+                {"text": "🔔 Alle aktiv", "callback_data": "all_on"},
+                {"text": "🔕 Alle aus", "callback_data": "all_off"},
+            ],
+            [{"text": "💾 Speichern", "callback_data": "save"}],
+        ]
+    }
 
 
-def build_zone_buttons(user):
-    favorites = set(user.get("favorites", []))
-    keyboard = []
-
-    current_act = None
-
-    for code, zone in ZONES.items():
-        act = zone["act"]
-
-        if act != current_act:
-            keyboard.append([
-                {
-                    "text": act,
-                    "callback_data": "noop"
-                }
-            ])
-            current_act = act
-
-        marker = "✅" if code in favorites else "❌"
-
-        keyboard.append([
-            {
-                "text": f"{marker} {zone['name']}",
-                "callback_data": f"toggle:{code}",
-            }
-        ])
-
-    return {"inline_keyboard": keyboard}
-
-
-def handle_list():
+def handle_menu():
     users = load_users()
 
-    for chat_id, user in users.items():
-        send_message(
-            chat_id,
-            build_message(),
-            reply_markup=build_zone_buttons(user),
-        )
+    text = (
+        f"📋 <b>{APP_NAME}</b>\n\n"
+        f"Wähle einen Akt oder ändere alle Terrorzonen:"
+    )
+
+    for chat_id in users.keys():
+        send_message(chat_id, text, reply_markup=build_main_menu())
 
 
 if __name__ == "__main__":
-    handle_list()
+    handle_menu()
