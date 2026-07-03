@@ -4,7 +4,6 @@ import requests
 from config import TELEGRAM_TOKEN, APP_NAME
 from zones import ZONES
 
-
 USERS_FILE = "users.json"
 
 
@@ -13,50 +12,59 @@ def load_users():
         return json.load(f)
 
 
-def send_message(chat_id, text):
+def send_message(chat_id, text, reply_markup=None):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    r = requests.post(
-        url,
-        json={
-            "chat_id": chat_id,
-            "text": text,
-            "parse_mode": "HTML",
-        },
-        timeout=20,
-    )
+
+    payload = {
+        "chat_id": chat_id,
+        "text": text,
+        "parse_mode": "HTML",
+    }
+
+    if reply_markup:
+        payload["reply_markup"] = reply_markup
+
+    r = requests.post(url, json=payload, timeout=20)
     r.raise_for_status()
 
 
 def build_list_message(user):
+    return (
+        f"📋 <b>{APP_NAME}</b>\n\n"
+        f"Wähle später per Button deine Favoriten aus."
+    )
+
+
+def build_zone_buttons(user):
     favorites = set(user.get("favorites", []))
 
-    lines = [f"📋 <b>{APP_NAME}</b>", ""]
-
-    current_act = None
+    keyboard = []
 
     for code, zone in ZONES.items():
-        act = zone.get("act", "Sonstige")
-
-        if act != current_act:
-            if current_act is not None:
-                lines.append("")
-            lines.append(f"<b>{act}</b>")
-            current_act = act
-
         marker = "✅" if code in favorites else "❌"
-        lines.append(f"{marker} <code>{code}</code>  {zone['name']}")
+        button_text = f"{marker} {zone['name']}"
 
-    lines.append("")
-    lines.append("Tippe später auf Buttons, um Favoriten zu ändern.")
+        keyboard.append([
+            {
+                "text": button_text,
+                "callback_data": f"toggle:{code}",
+            }
+        ])
 
-    return "\n".join(lines)
+    return {
+        "inline_keyboard": keyboard
+    }
 
 
 def handle_list():
     users = load_users()
 
     for chat_id, user in users.items():
-        send_message(chat_id, build_list_message(user))
+        send_message(
+            chat_id,
+            build_list_message(user),
+            reply_markup=build_zone_buttons(user),
+        )
 
 
 if __name__ == "__main__":
