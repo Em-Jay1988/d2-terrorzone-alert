@@ -1,10 +1,12 @@
 import json
+from collections import Counter
 import requests
 
-from config import TELEGRAM_TOKEN, APP_NAME
+from config import TELEGRAM_TOKEN, APP_NAME, ADMIN_CHAT_ID
 from zones import ZONES
 
 USERS_FILE = "users.json"
+DEFAULT_FAVORITES = ["kata", "tal", "meph", "chaos", "wsk"]
 
 
 def load_users():
@@ -15,6 +17,10 @@ def load_users():
 def save_users(data):
     with open(USERS_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def real_users(data):
+    return {k: v for k, v in data.items() if not k.startswith("_")}
 
 
 def telegram(method, payload=None):
@@ -44,10 +50,8 @@ def build_list(user):
     lines = [f"📋 <b>{APP_NAME}</b>", ""]
 
     current_act = None
-
     for code, zone in ZONES.items():
         act = zone["act"]
-
         if act != current_act:
             if current_act is not None:
                 lines.append("")
@@ -61,12 +65,47 @@ def build_list(user):
     lines.append("<b>Befehle:</b>")
     lines.append("<code>/watch chaos</code>")
     lines.append("<code>/unwatch chaos</code>")
-    lines.append("<code>/list</code>")
+    lines.append("<code>/stop</code>")
+    return "\n".join(lines)
+
+
+def build_admin(data):
+    users = real_users(data)
+    counter = Counter()
+
+    for user in users.values():
+        counter.update(user.get("favorites", []))
+
+    lines = ["🛠️ <b>Admin Übersicht</b>", ""]
+    lines.append(f"Registrierte Nutzer: <b>{len(users)}</b>")
+    lines.append("")
+    lines.append("<b>Top Terrorzonen:</b>")
+
+    if not counter:
+        lines.append("Noch keine Favoriten.")
+    else:
+        for i, (code, count) in enumerate(counter.most_common(5), start=1):
+            zone_name = ZONES.get(code, {}).get("name", code)
+            lines.append(f"{i}. {zone_name} – {count} Nutzer")
+
+    lines.append("")
+    lines.append("<code>/users</code> – Nutzerliste anzeigen")
+    return "\n".join(lines)
+
+
+def build_users(data):
+    users = real_users(data)
+    lines = ["👥 <b>Registrierte Nutzer</b>", ""]
+
+    for chat_id, user in users.items():
+        name = user.get("name", "User")
+        favorites = user.get("favorites", [])
+        lines.append(f"• <b>{name}</b> – {len(favorites)} Favoriten")
 
     return "\n".join(lines)
 
 
-def handle_command(chat_id, user, text):
+def handle_command(chat_id, user, text, data):
     parts = text.strip().split()
     command = parts[0].lower()
 
@@ -75,12 +114,6 @@ def handle_command(chat_id, user, text):
             chat_id,
             f"✅ Willkommen bei <b>{APP_NAME}</b>, {user.get('name', 'User')}!\n\n"
             f"Du wurdest automatisch registriert.\n\n"
-            f"Standard-Favoriten:\n"
-            f"🕸️ Katakomben\n"
-            f"🏜️ Tal Rashas Gräber\n"
-            f"💀 Kerker des Hasses\n"
-            f"🔥 Chaos Sanktuarium\n"
-            f"👑 Weltsteinturm\n\n"
             f"Nutze <code>/list</code>, um deine Zonen zu sehen."
         )
         return True
@@ -91,12 +124,34 @@ def handle_command(chat_id, user, text):
             f"🎮 <b>{APP_NAME}</b>\n\n"
             f"<code>/list</code> – Favoriten anzeigen\n"
             f"<code>/watch chaos</code> – Zone aktivieren\n"
-            f"<code>/unwatch chaos</code> – Zone deaktivieren"
+            f"<code>/unwatch chaos</code> – Zone deaktivieren\n"
+            f"<code>/stop</code> – Registrierung löschen"
         )
         return True
 
     if command == "/list":
         send_message(chat_id, build_list(user))
+        return True
+
+    if command == "/stop":
+        if chat_id in data:
+            name = data[chat_id].get("name", "User")
+            del data[chat_id]
+            send_message(chat_id, f"🛑 Registrierung gelöscht. Mach's gut, <b>{name}</b>.")
+        return True
+
+    if command == "/admin":
+        if chat_id != ADMIN_CHAT_ID:
+            send_message(chat_id, "Keine Berechtigung.")
+            return True
+        send_message(chat_id, build_admin(data))
+        return True
+
+    if command == "/users":
+        if chat_id != ADMIN_CHAT_ID:
+            send_message(chat_id, "Keine Berechtigung.")
+            return True
+        send_message(chat_id, build_users(data))
         return True
 
     if command in ["/watch", "/unwatch"]:
@@ -148,15 +203,14 @@ def main():
         if chat_id not in data:
             data[chat_id] = {
                 "name": message["chat"].get("first_name", "User"),
-                "favorites": ["kata", "tal", "meph", "chaos", "wsk"],
+                "favorites": DEFAULT_FAVORITES.copy(),
             }
-            send_message(chat_id, "Willkommen bei D2 Companion. Nutze <code>/list</code>.")
             changed = True
 
         user = data[chat_id]
 
         if text.startswith("/"):
-            if handle_command(chat_id, user, text):
+            if handle_command(chat_id, user, text, data):
                 changed = True
 
     if changed:
