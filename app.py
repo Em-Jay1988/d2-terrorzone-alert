@@ -10,16 +10,7 @@ TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
 API_URL = "https://d2runewizard.com/api/terror-zone"
 LOCAL_TZ = ZoneInfo("Europe/Berlin")
 
-ZONES = {
-    "kata": {"name": "🕸️ Katakomben", "keywords": ["cathedral", "catacombs"]},
-    "tal": {"name": "🏜️ Tal Rashas Gräber", "keywords": ["tal rasha"]},
-    "meph": {"name": "💀 Kerker des Hasses", "keywords": ["durance of hate"]},
-    "chaos": {"name": "🔥 Chaos Sanktuarium", "keywords": ["chaos sanctuary"]},
-    "wsk": {"name": "👑 Weltsteinturm", "keywords": ["worldstone", "throne of destruction", "worldstone chamber"]},
-    "at": {"name": "🧊 Alte Tunnel", "keywords": ["ancient tunnels"]},
-    "cows": {"name": "🐄 Kuhlevel", "keywords": ["moo moo farm"]},
-    "pit": {"name": "🕳️ Grube", "keywords": ["pit"]},
-}
+ZONES from zones import ZONES
 
 
 def normalize(text):
