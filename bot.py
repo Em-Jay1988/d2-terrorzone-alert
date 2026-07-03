@@ -192,10 +192,6 @@ def handle_callbacks(data):
 if __name__ == "__main__":
     data = load_users()
 
-    # Sendet Menü immer beim manuellen Workflow-Start
-    show_main_menu(data)
-
-    # Verarbeitet Button-Klicks seit letztem Lauf
     changed = handle_callbacks(data)
 
     if changed:
