@@ -70,7 +70,22 @@ def handle_command(chat_id, user, text):
     parts = text.strip().split()
     command = parts[0].lower()
 
-    if command in ["/start", "/help"]:
+    if command in ["/start", "/register"]:
+        send_message(
+            chat_id,
+            f"✅ Willkommen bei <b>{APP_NAME}</b>, {user.get('name', 'User')}!\n\n"
+            f"Du wurdest automatisch registriert.\n\n"
+            f"Standard-Favoriten:\n"
+            f"🕸️ Katakomben\n"
+            f"🏜️ Tal Rashas Gräber\n"
+            f"💀 Kerker des Hasses\n"
+            f"🔥 Chaos Sanktuarium\n"
+            f"👑 Weltsteinturm\n\n"
+            f"Nutze <code>/list</code>, um deine Zonen zu sehen."
+        )
+        return True
+
+    if command == "/help":
         send_message(
             chat_id,
             f"🎮 <b>{APP_NAME}</b>\n\n"
@@ -80,14 +95,6 @@ def handle_command(chat_id, user, text):
         )
         return True
 
-    if command == "/register":
-        user["name"] = user.get("name") or "User"
-        user.setdefault("favorites", ["kata", "tal", "meph", "chaos", "wsk"])
-        send_message(
-            chat_id,
-            f"✅ Registriert als <b>{user['name']}</b>.\n\nNutze <code>/list</code>."
-        )
-        return True
     if command == "/list":
         send_message(chat_id, build_list(user))
         return True
