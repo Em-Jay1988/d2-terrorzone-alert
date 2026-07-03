@@ -80,6 +80,14 @@ def handle_command(chat_id, user, text):
         )
         return True
 
+    if command == "/register":
+        user["name"] = user.get("name") or "User"
+        user.setdefault("favorites", ["kata", "tal", "meph", "chaos", "wsk"])
+        send_message(
+            chat_id,
+            f"✅ Registriert als <b>{user['name']}</b>.\n\nNutze <code>/list</code>."
+        )
+        return True
     if command == "/list":
         send_message(chat_id, build_list(user))
         return True
