@@ -59,7 +59,9 @@ def build_list(user):
             current_act = act
 
         marker = "✅" if code in favorites else "❌"
-        lines.append(f"{marker} <code>{code}</code>  {zone['name']}")
+        lines.append(
+ f"{marker} <code>{code:<10}</code> {zone['name']}"
+)
 
     lines.append("")
     lines.append("<b>Befehle:</b>")
