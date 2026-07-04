@@ -99,8 +99,8 @@ def main():
 
         send_telegram(
             chat_id,
-            f"🔥 <b>Terror Zone Alarm</b>\n\n"
-            f"⏰ Start: {next_start_time()}\n\n"
+            f"🔥 <b>Terror Zone Alarm</b>\n"
+            f"⏰ Start: {next_start_time()}\n"
             f"📍 {matched_zone}"
         )
 
