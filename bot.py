@@ -97,7 +97,7 @@ def build_users(data):
     users = real_users(data)
     lines = ["👥 <b>Registrierte Nutzer</b>", ""]
 
-    for chat_id, user in users.items():
+    for _, user in users.items():
         name = user.get("name", "User")
         favorites = user.get("favorites", [])
         lines.append(f"• <b>{name}</b> – {len(favorites)} Favoriten")
@@ -113,7 +113,7 @@ def handle_command(chat_id, user, text, data):
         send_message(
             chat_id,
             f"✅ Willkommen bei <b>{APP_NAME}</b>, {user.get('name', 'User')}!\n\n"
-            f"Du wurdest automatisch registriert.\n\n"
+            f"Du bist registriert.\n\n"
             f"Nutze <code>/list</code>, um deine Zonen zu sehen."
         )
         return True
@@ -134,10 +134,14 @@ def handle_command(chat_id, user, text, data):
         return True
 
     if command == "/stop":
+        name = user.get("name", "User")
         if chat_id in data:
-            name = data[chat_id].get("name", "User")
             del data[chat_id]
-            send_message(chat_id, f"🛑 Registrierung gelöscht. Mach's gut, <b>{name}</b>.")
+        send_message(
+            chat_id,
+            f"🛑 Registrierung gelöscht. Mach's gut, <b>{name}</b>.\n\n"
+            f"Mit <code>/start</code> kannst du dich jederzeit wieder registrieren."
+        )
         return True
 
     if command == "/admin":
@@ -200,18 +204,30 @@ def main():
         chat_id = str(message["chat"]["id"])
         text = message.get("text", "")
 
-        if chat_id not in data:
-            data[chat_id] = {
-                "name": message["chat"].get("first_name", "User"),
-                "favorites": DEFAULT_FAVORITES.copy(),
-            }
-            changed = True
+        if not text.startswith("/"):
+            continue
 
-        user = data[chat_id]
+        user = data.get(chat_id)
 
-        if text.startswith("/"):
-            if handle_command(chat_id, user, text, data):
+        if user is None:
+            if text.lower().startswith("/start") or text.lower().startswith("/register"):
+                user = {
+                    "name": message["chat"].get("first_name", "User"),
+                    "favorites": DEFAULT_FAVORITES.copy(),
+                }
+                data[chat_id] = user
                 changed = True
+            else:
+                send_message(
+                    chat_id,
+                    "👋 Du bist noch nicht registriert.\n\n"
+                    "Bitte sende zuerst <code>/start</code>."
+                )
+                changed = True
+                continue
+
+        if handle_command(chat_id, user, text, data):
+            changed = True
 
     if changed:
         save_users(data)
