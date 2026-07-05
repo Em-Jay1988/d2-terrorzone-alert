@@ -1,6 +1,18 @@
 {
   "279075849": {
     "name": "Michael",
-    "favorites": ["kata", "tal", "meph", "chaos", "wsk", "blood"]
+    "favorites": [
+      "kata",
+      "tal",
+      "meph",
+      "chaos",
+      "wsk",
+      "blood",
+      "spider",
+      "cows"
+    ]
+  },
+  "_meta": {
+    "last_update_id": 378108657
   }
 }
