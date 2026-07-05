@@ -9,7 +9,14 @@ USERS_FILE = "users.json"
 DEFAULT_FAVORITES = ["kata", "tal", "meph", "chaos", "wsk"]
 
 
+import os
+
 def load_users():
+    if not os.path.exists(USERS_FILE):
+        data = {"_meta": {}}
+        save_users(data)
+        return data
+
     with open(USERS_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
