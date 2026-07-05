@@ -7,6 +7,8 @@ from zoneinfo import ZoneInfo
 
 from zones import ZONES
 
+USERS_FILE = "users.json"
+
 
 TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
 
