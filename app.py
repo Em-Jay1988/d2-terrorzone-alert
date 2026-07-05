@@ -21,7 +21,12 @@ def normalize(text):
 
 
 def load_users():
-    with open("users.json", "r", encoding="utf-8") as f:
+    if not os.path.exists(USERS_FILE):
+        data = {"_meta": {}}
+        save_users(data)
+        return data
+
+    with open(USERS_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
